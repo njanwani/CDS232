@@ -1,0 +1,14 @@
+% Step 1: Define the ODE function
+ode_function = @(t, x) x + atan(x);
+
+t0 = 0;          % Initial x
+x0 = 1;          % Initial y
+
+solver = @ode45;
+
+sol = solver(ode_function, [t0, 5], x0);
+
+plot(sol.x, sol.y);
+xlabel('x');
+ylabel('y');
+title('Numerical Solution of dy/dx = x + atan(x)');
