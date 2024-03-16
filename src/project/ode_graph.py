@@ -1,7 +1,12 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import pickle
+import matplotlib
 
+font = {'family' : 'Times',
+        'weight' : 'bold',
+        'size'   : 12}
+matplotlib.rc('font', **font)
 
 def add_arrow(line, position=None, direction='right', size=15, color=None):
     """
@@ -37,7 +42,7 @@ def add_arrow(line, position=None, direction='right', size=15, color=None):
     
 np.random.seed(7) #232
 fig, ax = plt.subplots(nrows = 1, ncols = 1)
-
+font = {'fontname' : 'Times New Roman'}
 
 plot2D = True
 DT = 0.01
@@ -48,13 +53,17 @@ NEURONS = 2
 theta = np.random.random(NEURONS)
 W = np.random.random((NEURONS, NEURONS)) * 10 - 5
 
-periodics = r'/Users/neiljanwani/Documents/CDS232/src/periodic_pickles/periodic_Aalpha10.pickle', r'/Users/neiljanwani/Documents/CDS232/src/periodic_pickles/peroidic_balpha10.pickle'
-stables = r'/Users/neiljanwani/Documents/CDS232/src/project/learning/stable_A_alpha10.pickle', r'/Users/neiljanwani/Documents/CDS232/src/project/learning/stable_b_alpha10.pickle'
-unstables = r'/Users/neiljanwani/Documents/CDS232/src/project/learning/unstable_A_alpha10.pickle', r'/Users/neiljanwani/Documents/CDS232/src/project/learning/unstable_b_alpha10.pickle'
-pickle_file_path = unstables[0]
+periodics = r'/Users/neiljanwani/Documents/CDS232/src/periodic_pickles/asym_periodic_A_alpha10.pickle', r'/Users/neiljanwani/Documents/CDS232/src/periodic_pickles/asym_periodic_b_alpha10.pickle'
+stables = r'/Users/neiljanwani/Documents/CDS232/src/periodic_pickles/stable_A_alpha10.pickle', r'/Users/neiljanwani/Documents/CDS232/src/periodic_pickles/stable_b_alpha10.pickle'
+unstables = r'/Users/neiljanwani/Documents/CDS232/src/periodic_pickles/unstable_A_alpha10.pickle', r'/Users/neiljanwani/Documents/CDS232/src/periodic_pickles/unstable_b_alpha10.pickle'
+waves = r'/Users/neiljanwani/Documents/CDS232/src/project/learning/wave_A_alpha10.pickle', r'/Users/neiljanwani/Documents/CDS232/src/project/learning/wave_b_alpha10.pickle'
+trains = lambda num_epochs: (rf'/Users/neiljanwani/Documents/CDS232/src/project/learning/stable_A_alpha10_{num_epochs}.pickle', rf'/Users/neiljanwani/Documents/CDS232/src/project/learning/stable_b_alpha10_{num_epochs}.pickle')
+num_epochs = 35
+dude = trains(num_epochs)
+pickle_file_path = dude[0]
 with open(pickle_file_path, 'rb') as file:
     weight_matrix = pickle.load(file)
-pickle_file_path = unstables[1]
+pickle_file_path = dude[1]
 with open(pickle_file_path, 'rb') as file:
     bias_matrix = pickle.load(file)
 
@@ -71,12 +80,12 @@ phi = lambda x: alpha *np.tanh(x)
 f = lambda x: 1 / tau * (-x + phi(W@x + theta)) 
 
 # def f(x):
-#     theta = np.arctan2(x[1], x[0]) + np.pi
+#     theta = np.sin(x[0]) #np.arctan2(x[1], x[0]) + np.pi
 #     return 5 * np.array([np.cos(theta), np.sin(theta)])
 # f2 = lambda x: 1 / tau * (-x + phi(W1@x + theta)) 
 # f = lambda x: phi(W@x + theta)
 
-steps = 1000
+steps = 2000
 x = np.zeros((steps,2))
 X0 = []
 NUM = 8
@@ -103,7 +112,10 @@ for x0 in X0:
 t = np.linspace(0, 2 * np.pi)
 # ax.plot(np.cos(t), np.sin(t), color = 'black', lw=0.5)
     
-# ax.set_xlim((-2, 2))
-# ax.set_ylim((-2, 2))
-ax.set_aspect('equal')
-plt.show()
+# ax.set_xlim((-10, 10))
+# ax.set_ylim((-10, 10))
+# ax.set_aspect('equal')
+fig.set_size_inches((6,6))
+fig.suptitle(f'Epoch {num_epochs}')
+fig.tight_layout()
+plt.savefig(f'/Users/neiljanwani/Documents/CDS232/src/project/graphs/train_{num_epochs}.png', dpi=500)

@@ -7,6 +7,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 import pickle
 import numpy as np
+import time
 
 def gen_data(N, behavior='periodic'):
     
@@ -16,7 +17,7 @@ def gen_data(N, behavior='periodic'):
     if behavior == 'periodic':
         r = np.vstack((np.linalg.norm(X, axis=1), np.linalg.norm(X, axis=1)))
         thetas = np.arctan2(X[:, 1], X[:, 0]) + np.pi / 2 - 0.2 * np.tanh(0.1 * (2 - np.linalg.norm(X, axis=1)))
-        y = r.T * np.vstack((np.cos(thetas),
+        y = 1 * np.vstack((np.cos(thetas),
                     np.sin(thetas))).T
     elif behavior == 'stable':
         r = np.vstack((np.linalg.norm(X, axis=1), np.linalg.norm(X, axis=1)))
@@ -28,11 +29,15 @@ def gen_data(N, behavior='periodic'):
         thetas = np.arctan2(X[:, 1], X[:, 0]) + 0.5
         y = r.T * np.vstack((np.cos(thetas),
                     np.sin(thetas))).T
+    elif behavior == 'wave':
+        thetas = np.sin(X[:, 0])
+        y = np.vstack((np.cos(thetas),
+                       np.sin(thetas))).T
     print(X.shape)
     print(y.shape)
     return X, y
 
-BEHAVIOR = 'unstable'
+BEHAVIOR = 'stable'
 # Load and preprocess the Iris dataset
 X, y = gen_data(1_000, behavior=BEHAVIOR)
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.01)
@@ -82,7 +87,8 @@ criterion = nn.MSELoss()
 optimizer = optim.Adam(model.parameters(), lr=0.0001)
 scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=50, gamma=0.1, verbose=False)
 # Training loop
-num_epochs = 300
+num_epochs = 51
+epoch_saves = (5, 10, 15, 20, 25, 30, 35, 40, 45, 50)
 batch_size = 4
 
 for epoch in range(num_epochs):
@@ -106,7 +112,27 @@ for epoch in range(num_epochs):
     # Print training loss every 10 epochs
     if (epoch + 1) % 2 == 0:
         print(f'Epoch [{epoch+1}/{num_epochs}], Loss: {loss.item():.4f}')
+        
+    if int(epoch) in epoch_saves:
+        source = '/Users/neiljanwani/Documents/CDS232/src/project/learning/'
+        # Get the weight matrix of the first layer
+        weight_matrix = model.layer1.weight
+        matrix_to_save = weight_matrix.detach().numpy()
+        pickle_file_path = f"{BEHAVIOR}_A_alpha10_{epoch}.pickle"
+        # Open the file in binary write mode and dump the matrix using pickle
+        with open(source + pickle_file_path, 'wb') as file:
+            pickle.dump(matrix_to_save, file)
+            
+            
+        # Get the bias matrix of the first layer
+        bias_matrix = model.layer1.bias
+        matrix_to_save = bias_matrix.detach().numpy()
+        pickle_file_path = f"{BEHAVIOR}_b_alpha10_{epoch}.pickle"
 
+        # Open the file in binary write mode and dump the matrix using pickle
+        with open(source + pickle_file_path, 'wb') as file:
+            pickle.dump(matrix_to_save, file)
+        
 # Test the model
 model.eval()
 with torch.no_grad():
@@ -120,7 +146,7 @@ with torch.no_grad():
 # Get the weight matrix of the first layer
 weight_matrix = model.layer1.weight
 matrix_to_save = weight_matrix.detach().numpy()
-pickle_file_path = f"{BEHAVIOR}_A_alpha10.pickle"
+pickle_file_path = f"{BEHAVIOR}_A_alpha10_{num_epochs}.pickle"
 
 # Open the file in binary write mode and dump the matrix using pickle
 with open(pickle_file_path, 'wb') as file:
@@ -130,7 +156,7 @@ with open(pickle_file_path, 'wb') as file:
 # Get the bias matrix of the first layer
 bias_matrix = model.layer1.bias
 matrix_to_save = bias_matrix.detach().numpy()
-pickle_file_path = f"{BEHAVIOR}_b_alpha10.pickle"
+pickle_file_path = f"{BEHAVIOR}_b_alpha10_{num_epochs}.pickle"
 
 # Open the file in binary write mode and dump the matrix using pickle
 with open(pickle_file_path, 'wb') as file:
